@@ -636,3 +636,36 @@ JOIN Budget b ON b.Category_idCategory = c.idCategory
 GROUP BY u.username, c.name, b.amount;
 
 DELIMITER ;
+
+-- =========================================
+-- Stoed function
+-- =========================================
+
+-- Drop the function if it exists
+DROP FUNCTION IF EXISTS fn_GetTotalSpentByCategory;
+
+DELIMITER //
+
+CREATE FUNCTION fn_GetTotalSpentByCategory(p_category_id INT) 
+RETURNS FLOAT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE v_total_spent FLOAT DEFAULT 0.0;
+
+    SELECT SUM(amount)
+    INTO v_total_spent
+    FROM Transaktion
+    WHERE Category_idCategory = p_category_id
+      AND type = 'expends';
+
+    -- If no transactions exist, return 0 instead of NULL
+    IF v_total_spent IS NULL THEN
+        SET v_total_spent = 0;
+    END IF;
+
+    RETURN v_total_spent;
+END;
+//
+
+DELIMITER ;
